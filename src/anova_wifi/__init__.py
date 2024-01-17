@@ -6,24 +6,30 @@ from .exceptions import (
     WebsocketFailure,
 )
 from .parser import AnovaApi
-from .web_socket_containers import (
-    AnovaCommand,
-    AnovaMode,
-    AnovaState,
+from .apc_web_socket_containers import (
+    APCAnovaCommand,
+    APCAnovaMode,
+    APCAnovaState,
     APCUpdate,
     APCUpdateBinary,
     APCUpdateSensor,
     APCWifiDevice,
-    WifiCookerStateBody,
-    WifiJob,
-    WifiJobStatus,
-    WifiPinInfo,
-    WifiSystemInfo,
-    WifiSystemInfo3220,
-    WifiSystemInfoNxp,
-    WifiTemperatureInfo,
+    APCWifiCookerStateBody,
+    APCWifiJob,
+    APCWifiJobStatus,
+    APCWifiPinInfo,
+    APCWifiSystemInfo,
+    APCWifiSystemInfo3220,
+    APCWifiSystemInfoNxp,
+    APCWifiTemperatureInfo,
     build_wifi_cooker_state_body,
 )
+
+from .apo_web_socket_containers import (
+    APOUpdate,
+    APOWifiDevice,
+)
+
 from .websocket_handler import AnovaWebsocketHandler
 
 __version__ = "0.10.4"
@@ -38,18 +44,20 @@ __all__ = [
     "APCUpdate",
     "APCUpdateSensor",
     "APCUpdateBinary",
-    "AnovaCommand",
+    "APCAnovaCommand",
     "APCWifiDevice",
-    "AnovaMode",
-    "AnovaState",
-    "WifiJob",
-    "WifiJobStatus",
-    "WifiSystemInfo3220",
-    "WifiSystemInfo",
-    "WifiTemperatureInfo",
-    "WifiSystemInfoNxp",
-    "WifiPinInfo",
-    "WifiCookerStateBody",
+    "APCAnovaMode",
+    "APCAnovaState",
+    "APCWifiJob",
+    "APCWifiJobStatus",
+    "APCWifiSystemInfo3220",
+    "APCWifiSystemInfo",
+    "APCWifiTemperatureInfo",
+    "APCWifiSystemInfoNxp",
+    "APCWifiPinInfo",
+    "APCWifiCookerStateBody",
     "build_wifi_cooker_state_body",
     "AnovaWebsocketHandler",
+    "APOWifiDevice",
+    "APOUpdate",
 ]

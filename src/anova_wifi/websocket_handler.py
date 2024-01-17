@@ -1,14 +1,20 @@
 import asyncio
 import json
 import logging
-from typing import Any
+from typing import Any, Union
 
 from aiohttp import ClientSession, ClientWebSocketResponse
 
-from .web_socket_containers import (
-    AnovaCommand,
+from .apc_web_socket_containers import (
+    APCAnovaCommand,
     APCWifiDevice,
     build_wifi_cooker_state_body,
+)
+
+from .apo_web_socket_containers import (
+    APOAnovaCommand,
+    APOWifiDevice,
+    build_wifi_oven_state_body,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,8 +25,8 @@ class AnovaWebsocketHandler:
         self._firebase_jwt = firebase_jwt
         self.jwt = jwt
         self.session = session
-        self.url = f"https://devices.anovaculinary.io/?token={self._firebase_jwt}&supportedAccessories=APC&platform=android"  # noqa
-        self.devices: dict[str, APCWifiDevice] = {}
+        self.url = f"https://devices.anovaculinary.io/?token={self._firebase_jwt}&supportedAccessories=APC,APO&platform=android"  # noqa
+        self.devices: dict[str, Union[APCWifiDevice,APOWifiDevice]] = {}
         self.ws: ClientWebSocketResponse | None = None
 
     async def connect(self) -> None:
@@ -33,7 +39,7 @@ class AnovaWebsocketHandler:
 
     def on_message(self, message: dict[str, Any]) -> None:
         _LOGGER.debug("Found message %s", message)
-        if message["command"] == AnovaCommand.EVENT_APC_WIFI_LIST:
+        if message["command"] == APCAnovaCommand.EVENT_APC_WIFI_LIST:
             payload = message["payload"]
             for device in payload:
                 if device["cookerId"] not in self.devices:
@@ -43,7 +49,7 @@ class AnovaWebsocketHandler:
                         paired_at=device["pairedAt"],
                         name=device["name"],
                     )
-        elif message["command"] == AnovaCommand.EVENT_APC_STATE:
+        elif message["command"] == APCAnovaCommand.EVENT_APC_STATE:
             cooker_id = message["payload"]["cookerId"]
             if cooker_id not in self.devices:
                 pass
@@ -51,6 +57,25 @@ class AnovaWebsocketHandler:
                 update = build_wifi_cooker_state_body(
                     message["payload"]["state"]
                 ).to_apc_update()
+                ul(update)
+        elif message["command"] == APOAnovaCommand.EVENT_APO_WIFI_LIST:
+            payload = message["payload"]
+            for device in payload:
+                if device["cookerId"] not in self.devices:
+                    self.devices[device["cookerId"]] = APOWifiDevice(
+                        cooker_id=device["cookerId"],
+                        type=device["type"],
+                        paired_at=device["pairedAt"],
+                        name=device["name"],  
+                    )
+        elif message["command"] == APOAnovaCommand.EVENT_APO_STATE:
+            cooker_id = message["payload"]["cookerId"]
+            if cooker_id not in self.devices:
+                pass
+            if (ul := self.devices[cooker_id].update_listener) is not None:
+                update = build_wifi_oven_state_body(
+                    message["payload"]
+                )
                 ul(update)
 
     async def message_listener(self) -> None:
